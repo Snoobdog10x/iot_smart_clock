@@ -1,103 +1,55 @@
-#line 1 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-#include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <ESPDash.h>
-#include <DS3232RTC.h>
-#include <TM1637Display.h>
-#define LAMP D7
-#define BTN1 D3
-#define BTN2 D4
-#define CLK D5
-#define DIO D6
-#define CLICK_MILLIS 400
-#define LONGPRESS_MILLIS 1000
-#define BTN_INTERVAL_MILLIS 135
-#define WAIT_BTN2_MILLIS 30
-#define BTN1_CLICK 0
-#define BTN2_CLICK 1
-#define BTN1_LONG_PRESS 2
-#define BTN2_LONG_PRESS 3
-#define DOUBLE_BTN_CLICK 4
-#define DOUBLE_BTN_LONGPRESS 5
-#define BTN_DO_NOTHING 6
+# 1 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
+# 2 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino" 2
+# 3 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino" 2
+# 4 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino" 2
+# 5 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino" 2
+# 6 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino" 2
+# 7 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino" 2
+# 8 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino" 2
+# 24 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
 unsigned long button_time = 0;
 bool check = false;
 bool is_double = false;
 bool is_btn1 = false;
-#line 28 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-byte buttons_handle();
-#line 121 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void set_time(byte hours, byte mins, byte secs);
-#line 140 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-byte get_tempurature();
-#line 147 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void on_at(int displaytime, bool at_hour);
-#line 158 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void off_at(bool at_hour);
-#line 173 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void blink_digit(int displaytime, unsigned long &time_blink, bool at_hour);
-#line 186 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void show_tempu_time(bool is_time_show);
-#line 217 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void adjust_time();
-#line 272 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void lamp_display(byte brighness);
-#line 276 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void turn_on_off_led();
-#line 280 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void change_led_value(byte slider_value);
-#line 285 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void led_display();
-#line 310 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void btn_ctroller();
-#line 350 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void sync_time_slider();
-#line 364 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void setup();
-#line 423 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
-void loop();
-#line 28 "d:\\study\\UN_4th\\IoT\\doan\\doan.ino"
 byte buttons_handle()
 {
-    if ((digitalRead(BTN1) == LOW || digitalRead(BTN2) == LOW) && button_time == 0)
+    if ((digitalRead(D3) == 0x0 || digitalRead(D4) == 0x0) && button_time == 0)
     {
         button_time = millis();
         check = true;
     }
-    if (check && millis() - button_time > WAIT_BTN2_MILLIS)
+    if (check && millis() - button_time > 30)
     {
-        if (digitalRead(BTN1) == LOW && digitalRead(BTN2) == LOW)
+        if (digitalRead(D3) == 0x0 && digitalRead(D4) == 0x0)
         {
             is_double = true;
         }
-        if (digitalRead(BTN1) == LOW && digitalRead(BTN2) == HIGH)
+        if (digitalRead(D3) == 0x0 && digitalRead(D4) == 0x1)
             is_btn1 = true;
         check = false;
     }
     if (button_time != 0)
     {
 
-        if (millis() - button_time > BTN_INTERVAL_MILLIS)
+        if (millis() - button_time > 135)
         {
 
             if (is_double)
             {
-                if (digitalRead(BTN2) == LOW && digitalRead(BTN1) == LOW)
-                    if ((millis() - button_time) >= LONGPRESS_MILLIS + 1500)
+                if (digitalRead(D4) == 0x0 && digitalRead(D3) == 0x0)
+                    if ((millis() - button_time) >= 1000 + 1500)
                     {
                         Serial.println("double BTN long press");
-                        return DOUBLE_BTN_LONGPRESS;
+                        return 5;
                     }
-                if (digitalRead(BTN2) == HIGH && digitalRead(BTN1) == HIGH)
+                if (digitalRead(D4) == 0x1 && digitalRead(D3) == 0x1)
                 {
-                    if ((millis() - button_time) <= CLICK_MILLIS)
+                    if ((millis() - button_time) <= 400)
                     {
                         button_time = 0;
                         Serial.println("double BTN click");
                         is_double = false;
-                        return DOUBLE_BTN_CLICK;
+                        return 4;
                     }
                     is_double = false;
                     button_time = 0;
@@ -108,20 +60,20 @@ byte buttons_handle()
 
                 if (is_btn1)
                 {
-                    if (digitalRead(BTN1) == LOW)
-                        if ((millis() - button_time) > LONGPRESS_MILLIS)
+                    if (digitalRead(D3) == 0x0)
+                        if ((millis() - button_time) > 1000)
                         {
                             Serial.println("BTN1 long press");
-                            return BTN1_LONG_PRESS;
+                            return 2;
                         }
-                    if (digitalRead(BTN1) == HIGH)
+                    if (digitalRead(D3) == 0x1)
                     {
-                        if ((millis() - button_time) <= CLICK_MILLIS)
+                        if ((millis() - button_time) <= 400)
                         {
                             button_time = 0;
                             Serial.println("BTN1 click");
                             is_btn1 = false;
-                            return BTN1_CLICK;
+                            return 0;
                         }
                         is_btn1 = false;
                         button_time = 0;
@@ -129,19 +81,19 @@ byte buttons_handle()
                 }
                 else
                 {
-                    if (digitalRead(BTN2) == LOW)
-                        if ((millis() - button_time) > LONGPRESS_MILLIS)
+                    if (digitalRead(D4) == 0x0)
+                        if ((millis() - button_time) > 1000)
                         {
                             Serial.println("BTN2 long press");
-                            return BTN2_LONG_PRESS;
+                            return 3;
                         }
-                    if (digitalRead(BTN2) == HIGH)
+                    if (digitalRead(D4) == 0x1)
                     {
-                        if ((millis() - button_time) <= CLICK_MILLIS)
+                        if ((millis() - button_time) <= 400)
                         {
                             button_time = 0;
                             Serial.println("BTN2 click");
-                            return BTN2_CLICK;
+                            return 1;
                         }
                         button_time = 0;
                     }
@@ -149,7 +101,7 @@ byte buttons_handle()
             }
         }
     }
-    return BTN_DO_NOTHING;
+    return 6;
 }
 DS3232RTC myRTC;
 void set_time(byte hours, byte mins, byte secs)
@@ -159,9 +111,9 @@ void set_time(byte hours, byte mins, byte secs)
     tmElements_t tm;
     int y = year(t);
     if (y >= 1000)
-        tm.Year = CalendarYrToTm(y);
+        tm.Year = ((y) - 1970);
     else // (y < 100)
-        tm.Year = y2kYearToTm(y);
+        tm.Year = ((y) + 30);
     tm.Month = month(t);
     tm.Day = day(t);
     tm.Hour = hours;
@@ -175,7 +127,7 @@ byte get_tempurature()
 {
     return myRTC.temperature();
 }
-TM1637Display display(CLK, DIO);
+TM1637Display display(D5, D6);
 
 unsigned long dot_bink_time = 0;
 void on_at(int displaytime, bool at_hour)
@@ -240,8 +192,8 @@ void show_tempu_time(bool is_time_show)
     else
     {
         const uint8_t SEG_DONE[] = {
-            SEG_A | SEG_B | SEG_G | SEG_F,
-            SEG_A | SEG_F | SEG_E | SEG_D,
+            0b00000001 | 0b00000010 | 0b01000000 | 0b00100000,
+            0b00000001 | 0b00100000 | 0b00010000 | 0b00001000,
         };
         byte tempur = get_tempurature();
         display.showNumberDec(tempur, false, 2, 0);
@@ -261,12 +213,12 @@ void adjust_time()
     while (millis() - auto_break < 5000)
     {
         byte state = buttons_handle();
-        if (state == DOUBLE_BTN_CLICK)
+        if (state == 4)
             break;
         blink_digit(displaytime, time_blink, at_hour);
-        if (state == BTN1_CLICK || state == BTN1_LONG_PRESS)
+        if (state == 0 || state == 2)
         {
-            if (state == BTN1_LONG_PRESS)
+            if (state == 2)
             {
                 delay(200);
             }
@@ -289,7 +241,7 @@ void adjust_time()
             displaytime = hours * 100 + mins;
             auto_break = millis();
         }
-        else if (state == BTN2_CLICK)
+        else if (state == 1)
         {
             auto_break = millis();
             at_hour = !at_hour;
@@ -305,7 +257,7 @@ bool led_state = false;
 byte value = 0;
 void lamp_display(byte brighness)
 {
-    analogWrite(LAMP, brighness);
+    analogWrite(D7, brighness);
 }
 void turn_on_off_led()
 {
@@ -328,7 +280,7 @@ void led_display()
     }
 }
 const char *dinor_ssid = "dinausor_RGB"; // SSID
-const char *dinor_password = "";         // Password
+const char *dinor_password = ""; // Password
 AsyncWebServer server(80);
 ESPDash dashboard(&server);
 Card LED_CTL(&dashboard, BUTTON_CARD, "RGB ON");
@@ -344,12 +296,12 @@ bool is_time_display = true;
 void btn_ctroller()
 {
     byte state = buttons_handle();
-    if (state == BTN1_CLICK)
+    if (state == 0)
     {
         turn_on_off_led();
         return;
     }
-    if (state == BTN2_CLICK)
+    if (state == 1)
     {
         led_value += step;
         if (led_value == 255 || led_value == 0)
@@ -357,7 +309,7 @@ void btn_ctroller()
         change_led_value(led_value);
         return;
     }
-    if (state == BTN2_LONG_PRESS)
+    if (state == 3)
     {
         if (millis() - time_btn2_long >= 200)
         {
@@ -369,12 +321,12 @@ void btn_ctroller()
         }
         return;
     }
-    if (state == DOUBLE_BTN_CLICK)
+    if (state == 4)
     {
         is_time_display = !is_time_display;
         return;
     }
-    if (state == DOUBLE_BTN_LONGPRESS)
+    if (state == 5)
     {
         adjust_time();
         return;
@@ -450,8 +402,8 @@ set_time(hours,mins,secs);
         Serial.println("RTC has set the system time");
     display.setBrightness(5);
     display.clear();
-    pinMode(BTN1, INPUT);
-    pinMode(BTN2, INPUT_PULLUP);
+    pinMode(D3, 0x00);
+    pinMode(D4, 0x02);
 }
 
 void loop()
